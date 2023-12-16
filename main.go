@@ -6,12 +6,16 @@ import (
 	TC "GOTest/Controllers/testController"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
 func main() {
 	app := fiber.New()
 	app.Use(logger.New())
+	app.Use(cors.New(cors.Config{
+		AllowHeaders: "Origin, Content-Type, Accept",
+	}))
 
 	app.Get("/:imgName", TC.HandleGet)
 	app.Post("/item", TC.HandlePost)

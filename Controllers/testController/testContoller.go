@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 func HandleGet(c *fiber.Ctx) error {
@@ -17,7 +18,10 @@ func HandlePost(c *fiber.Ctx) error {
 		return err
 	}
 	fmt.Println(file.Filename)
-	saveErr := c.SaveFile(file, "./images/test.png")
+
+	uuid, _ := uuid.NewUUID()
+	imgName := fmt.Sprintf("./images/%s%s.png", uuid.String(), file.Filename)
+	saveErr := c.SaveFile(file, imgName)
 	if saveErr != nil {
 		return saveErr
 	}
@@ -28,11 +32,17 @@ func HandlePost(c *fiber.Ctx) error {
 		ItemLength     string `json:"itemLength"`
 		AvailableSizes string `json:"availableSizes"`
 		Stock          string `json:"stock"`
+		ImgPath        string `json:"imgPath"`
 	}{}
 
-	if err := c.BodyParser(&payload); err != nil {
+	parseError := c.BodyParser(&payload)
+	if parseError != nil {
 		return err
 	}
-	return c.SendFile("./images/test.png")
-	/* return c.JSON(payload) */
+
+	payload.ImgPath = imgName
+
+	/* return c.SendFile("./images/test.png") */
+	fmt.Println(payload)
+	return c.JSON(payload)
 }
