@@ -1,4 +1,4 @@
-module GOTest
+module QRSweet.com
 
 go 1.21.0
 

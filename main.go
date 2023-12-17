@@ -4,7 +4,8 @@ import (
 	"context"
 	"log"
 
-	TC "GOTest/Controllers/testController"
+	TC "QRSweet.com/src/Controllers/imageController"
+
 	"os"
 
 	"github.com/gofiber/fiber/v2"
@@ -26,11 +27,7 @@ func main() {
 		return
 	}
 
-	qrImagesCol := client.Database("qrimages").Collection("qrimages")
-	_, insertErr := qrImagesCol.InsertOne(context.TODO(), map[string]interface{}{"key": "value", "test": "testing"})
-	if insertErr != nil {
-		log.Fatal(insertErr)
-	}
+	TC.SetClient(client)
 
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
@@ -40,7 +37,7 @@ func main() {
 	}))
 
 	app.Get("/image/:imgName", TC.HandleGet)
-	app.Post("/item", TC.HandlePost)
+	app.Post("/image", TC.HandlePost)
 	app.Get("/images", TC.HandleGetAll)
 	defer func() {
 		if err := client.Disconnect(context.TODO()); err != nil {
