@@ -2,6 +2,7 @@ package TC
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -9,7 +10,17 @@ import (
 
 func HandleGet(c *fiber.Ctx) error {
 	imgPath := fmt.Sprintf("./images/%s.png", c.Params("imgName"))
+
 	return c.SendFile(imgPath)
+}
+
+func HandleGetAll(c *fiber.Ctx) error {
+	content, err := os.ReadFile("db.txt")
+	if err != nil {
+		return err
+	}
+
+	return c.Status(200).SendString(string(content))
 }
 
 func HandlePost(c *fiber.Ctx) error {
@@ -17,22 +28,15 @@ func HandlePost(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(file.Filename)
 
 	uuid, _ := uuid.NewUUID()
-	imgName := fmt.Sprintf("./images/%s%s.png", uuid.String(), file.Filename)
+	imgName := fmt.Sprintf("./images/%s%s.png", uuid.String(), file.Size)
 	saveErr := c.SaveFile(file, imgName)
 	if saveErr != nil {
 		return saveErr
 	}
 	payload := struct {
-		Name           string `json:"name"`
-		Price          string `json:"price"`
-		ItemType       string `json:"itemType"`
-		ItemLength     string `json:"itemLength"`
-		AvailableSizes string `json:"availableSizes"`
-		Stock          string `json:"stock"`
-		ImgPath        string `json:"imgPath"`
+		ImgPath string `json:"imgPath"`
 	}{}
 
 	parseError := c.BodyParser(&payload)
@@ -41,8 +45,25 @@ func HandlePost(c *fiber.Ctx) error {
 	}
 
 	payload.ImgPath = imgName
+	dbImageName := fmt.Sprintf("%s%s", uuid.String(), file.Size)
+	writeToDb(dbImageName)
 
-	/* return c.SendFile("./images/test.png") */
-	fmt.Println(payload)
-	return c.JSON(payload)
+	return c.Status(200).JSON(payload)
+}
+
+func writeToDb(name string) {
+	db, err := os.OpenFile("db.txt", os.O_RDWR|os.O_CREATE, 0777)
+	if err != nil {
+		return
+	}
+	writeName := fmt.Sprintf("%s\n", name)
+	content, readErr := os.ReadFile("db.txt")
+	if readErr != nil {
+		return
+	}
+	readContent := []byte(content)
+	var writeIndex int64 = int64(len(readContent))
+
+	db.WriteAt([]byte(writeName), writeIndex)
+	db.Close()
 }
