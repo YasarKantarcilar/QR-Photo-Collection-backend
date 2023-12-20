@@ -44,6 +44,15 @@ func HandleGetAll(c *fiber.Ctx) error {
 	return c.Status(200).JSON(images)
 }
 
+func HandleDelete(c *fiber.Ctx) error {
+	_, err := client.Database("qrimages").Collection("qrimages").DeleteOne(context.Background(), bson.M{"imageName": c.Params("imgName")})
+	if err != nil {
+		log.Fatal(err)
+		return err
+	}
+	return c.Status(200).JSON("Deleted")
+}
+
 func HandlePost(c *fiber.Ctx) error {
 	file, err := c.FormFile("image")
 	if err != nil {
@@ -83,9 +92,10 @@ func writeToDb(payload *struct {
 	qrImagesCol := client.Database("qrimages").Collection("qrimages")
 
 	// Correct way to insert a document
-	_, insertErr := qrImagesCol.InsertOne(context.TODO(), map[string]interface{}{"imgPath": payload.ImgPath, "schoolName": payload.SchoolName})
+	_, insertErr := qrImagesCol.InsertOne(context.TODO(), map[string]interface{}{"imageName": payload.ImgPath, "schoolName": payload.SchoolName})
 	if insertErr != nil {
 		log.Fatal(insertErr)
 	}
+	fmt.Println("Inserted a single document: ", payload.ImgPath, payload.SchoolName)
 
 }

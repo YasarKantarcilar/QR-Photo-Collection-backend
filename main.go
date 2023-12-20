@@ -39,6 +39,7 @@ func main() {
 	app.Get("/image/:imgName", TC.HandleGet)
 	app.Post("/image", TC.HandlePost)
 	app.Get("/images", TC.HandleGetAll)
+	app.Delete("/image/:imgName", TC.HandleDelete)
 	defer func() {
 		if err := client.Disconnect(context.TODO()); err != nil {
 			panic(err)
